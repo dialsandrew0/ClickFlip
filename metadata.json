@@ -1,0 +1,6 @@
+{
+  "name": "FlipFindr",
+  "description": "God-tier resale intelligence layer starting where Google Lens stops. Triage buy/skip verdicts, estimate values, inspect authentic tells, and compile instant copy-pasteable listings for estate sales, thrift bins, dumpster dives, and garage hunters.",
+  "requestFramePermissions": ["camera"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
