@@ -28,8 +28,134 @@ import {
   ChevronUp, 
   FileText,
   Eye,
-  Info
+  Info,
+  ShieldCheck,
+  ShoppingBag,
+  Wrench,
+  BookOpen,
+  HelpCircle,
+  TrendingUp,
+  Target
 } from "lucide-react";
+
+export interface TuningPreset {
+  id: string;
+  name: string;
+  badge: string;
+  targetMargin: string;
+  riskTolerance: string;
+  feeDeduction: string;
+  shortDesc: string;
+  explanation: string;
+  recommendedFor: string;
+  keyChecklist: string[];
+}
+
+export const TUNING_PRESETS: TuningPreset[] = [
+  {
+    id: "conservative_thrift",
+    name: "🛡️ Conservative Thrift Safeguard (300%+ ROI)",
+    badge: "🛡️ Safety First",
+    targetMargin: "300%+ ROI (3x Buy Price)",
+    riskTolerance: "Very Low",
+    feeDeduction: "15% - 25% Platform & Shipping Buffer",
+    shortDesc: "Strict evaluation requiring 3x markup and applying safety discounts to protect against price drops.",
+    explanation: "Designed for thrift store sourcing ($10–$30 buys). The AI applies a -20% safety buffer to historical sold prices and strictly penalizes wear. It will only recommend BUY when net profit is highly guaranteed.",
+    recommendedFor: "Thrift stores, estate leftovers, or high-uncertainty items where capital preservation is key.",
+    keyChecklist: ["Demands 3x ROI margin", "-20% safety discount on sold comps", "High penalty for scuffs/flaws"],
+  },
+  {
+    id: "yard_sale_flip",
+    name: "⚡ Yard Sale Blitz & Fast Turnover",
+    badge: "⚡ Quick Cash",
+    targetMargin: "150% - 200% ROI",
+    riskTolerance: "Aggressive",
+    feeDeduction: "0% - 10% (Local FB Marketplace / Cash)",
+    shortDesc: "Optimized for cheap $1–$5 yard sale finds and quick 7-day local or Mercari flips.",
+    explanation: "Tailored for fast-paced garage sale hunting. Lowers the minimum profit threshold for items under $5, focusing on sales velocity over maximum price.",
+    recommendedFor: "Garage sales, flea markets, moving sales, dumpster finds, and bulk lot buys.",
+    keyChecklist: ["Fast sales velocity focus", "Lower ROI barrier for micro-buys", "Zero fee local flip math"],
+  },
+  {
+    id: "high_margin_antique",
+    name: "🏛️ Estate Sale & High-Value Antiques",
+    badge: "🏛️ Fine Collector",
+    targetMargin: "400%+ ROI or $100+ Net",
+    riskTolerance: "Moderate",
+    feeDeduction: "15% - 20% Specialty Auction Commission",
+    shortDesc: "Specializes in rare maker marks, artist signatures, provenance, and fine auction house sales.",
+    explanation: "Cross-checks LiveAuctioneers, 1stDibs, and collector price guides. Prioritizes identifying authentic hallmark stamps, signatures, and period craquelure.",
+    recommendedFor: "Estate sales, antique centers, auctions, fine art, silver, coins, and high-end collectibles.",
+    keyChecklist: ["Fine art & auction database check", "Maker mark & signature verification", "High net profit ceiling"],
+  },
+  {
+    id: "ebay_power_seller",
+    name: "📦 eBay & E-Commerce Power Seller",
+    badge: "📦 Online Pro",
+    targetMargin: "250% ROI (Factoring 13.25% Fees)",
+    riskTolerance: "Low",
+    feeDeduction: "13.25% eBay Fee + Est. Shipping Weight",
+    shortDesc: "Grounds pricing in strict 90-day eBay Sold Comps with automated fee and box weight deductions.",
+    explanation: "Built for online sellers. Automatically calculates net payout after deducting platform fees and estimated dimensional shipping before recommending a buy.",
+    recommendedFor: "Active resellers listing on eBay, Mercari, Poshmark, Depop, or Etsy.",
+    keyChecklist: ["Strict 90-day eBay sold comp median", "Exact 13.25% fee deduction", "Shipping weight cost penalty"],
+  },
+  {
+    id: "restoration_repair",
+    name: "🛠️ Fixer-Upper & Restoration Potential",
+    badge: "🛠️ DIY Repair",
+    targetMargin: "500%+ Restored Upside",
+    riskTolerance: "Aggressive",
+    feeDeduction: "Materials & Labor Effort Factor",
+    shortDesc: "Evaluates upside if cleaned, polished, re-wired, or refinished vs time and effort required.",
+    explanation: "Calculates current 'As-Is' value versus 'Restored Potential' value (e.g. after silver polishing, wood oiling, or re-wiring) and lists exact restoration steps.",
+    recommendedFor: "Tarnished silver, dirty vintage clothing, mid-century furniture, uncleaned coins, vintage audio.",
+    keyChecklist: ["As-Is vs Restored Value comparison", "DIY restoration effort breakdown", "High value unlock potential"],
+  },
+];
+
+export const SUGGESTED_SCENARIOS = [
+  {
+    id: "thrift_hunter",
+    label: "🛡️ Thrift Hunter",
+    desc: "3x ROI + Credit Card Scale",
+    strategy: "conservative_thrift",
+    condition: "good",
+    scale: "credit_card",
+  },
+  {
+    id: "garage_sale",
+    label: "⚡ Garage Sale Blitz",
+    desc: "Fast Flip + Quarter Scale",
+    strategy: "yard_sale_flip",
+    condition: "good",
+    scale: "quarter",
+  },
+  {
+    id: "estate_fine",
+    label: "🏛️ Estate & Fine Art",
+    desc: "Fine Comps + Ruler Scale",
+    strategy: "high_margin_antique",
+    condition: "good",
+    scale: "ruler",
+  },
+  {
+    id: "ebay_reseller",
+    label: "📦 eBay Power Seller",
+    desc: "13.25% Fee Math + Credit Card",
+    strategy: "ebay_power_seller",
+    condition: "good",
+    scale: "credit_card",
+  },
+  {
+    id: "fixer_upper",
+    label: "🛠️ Fixer-Upper Spotter",
+    desc: "Restoration Potential + Damaged",
+    strategy: "restoration_repair",
+    condition: "damaged",
+    scale: "credit_card",
+  },
+];
 
 interface ScannerTabProps {
   activeNiche: NicheConfig;
@@ -84,6 +210,11 @@ export default function ScannerTab({
   const [quickVerdictOnly, setQuickVerdictOnly] = useState<boolean>(false);
   const [queueOfflineMode, setQueueOfflineMode] = useState<boolean>(!isOnline);
   const [showSpecialtyModal, setShowSpecialtyModal] = useState<boolean>(false);
+
+  // Appraisal Strategy Tuning & Scale
+  const [tuningStrategy, setTuningStrategy] = useState<string>("conservative_thrift");
+  const [showTuningExplanationDrawer, setShowTuningExplanationDrawer] = useState<boolean>(false);
+  const [selectedScenarioId, setSelectedScenarioId] = useState<string | null>("thrift_hunter");
 
   // Scale Reference Calibration
   const [scaleReference, setScaleReference] = useState<ScaleReferenceType>("credit_card");
@@ -374,6 +505,7 @@ export default function ScannerTab({
       functional: functionalOpt,
       complete: completeOpt,
       wearNotes: `${conditionPreset.toUpperCase()} CONDITION. ${wearNotes}`.trim(),
+      tuningStrategy,
       scaleReference,
       nicheSpecificAnswers: nicheAnswers,
     };
@@ -887,85 +1019,269 @@ export default function ScannerTab({
 
       </div>
 
-      {/* Streamlined Quick Condition & Appraisal Tuning Card */}
+      {/* Enhanced Appraisal Tuning & Dropdown Strategy Section */}
       <div className="bg-white rounded-2xl border border-stone-200 p-5 sm:p-6 shadow-sm space-y-5">
         
-        <div className="flex items-center justify-between border-b border-stone-100 pb-3">
+        {/* Section Header */}
+        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-stone-100 pb-3">
           <div className="flex items-center gap-2">
-            <SlidersHorizontal className="w-5 h-5 text-indigo-600" />
-            <h3 className="text-sm font-bold font-display text-stone-900">
-              Quick Appraisal Tuning & Scale Setup
-            </h3>
+            <SlidersHorizontal className="w-5 h-5 text-amber-600" />
+            <div>
+              <h3 className="text-sm font-bold font-display text-stone-900">
+                Appraisal Tuning & Strategy Controls
+              </h3>
+              <p className="text-[11px] text-stone-500 font-sans">
+                Dropdown configurations for AI profit margins, risk thresholds, condition state & scale calibration
+              </p>
+            </div>
           </div>
-          <span className="text-xs text-stone-400 font-mono">1-Tap Preset</span>
+
+          <button
+            type="button"
+            onClick={() => setShowTuningExplanationDrawer(!showTuningExplanationDrawer)}
+            className="px-2.5 py-1 rounded-lg bg-stone-100 hover:bg-stone-200 text-stone-700 text-[11px] font-mono font-semibold flex items-center gap-1.5 transition-colors cursor-pointer border border-stone-200"
+          >
+            <Info className="w-3.5 h-3.5 text-amber-600" />
+            <span>How Tuning Works</span>
+          </button>
         </div>
 
-        {/* Scale Object Calibration Pill Selector */}
+        {/* 1-Tap Suggested Tuning Scenarios */}
         <div>
-          <label className="block text-xs font-bold text-stone-600 uppercase tracking-wider mb-2 flex items-center justify-between">
-            <span>Scale Reference Object in Frame</span>
-            <span className="text-[10px] text-amber-600 font-mono font-normal">Computes cm dimensions</span>
-          </label>
+          <div className="flex items-center justify-between mb-2">
+            <label className="text-xs font-bold text-stone-700 uppercase tracking-wider flex items-center gap-1.5">
+              <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+              1-Tap Suggested Sourcing Scenarios
+            </label>
+            <span className="text-[10px] text-stone-400 font-mono">Auto-configures all dropdowns</span>
+          </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-            {[
-              { id: "credit_card", label: "Credit Card / ID", icon: <CreditCard className="w-3.5 h-3.5 text-amber-600" /> },
-              { id: "quarter", label: "US Quarter Coin", icon: <Coins className="w-3.5 h-3.5 text-indigo-600" /> },
-              { id: "ruler", label: "Ruler / Tape", icon: <Ruler className="w-3.5 h-3.5 text-emerald-600" /> },
-              { id: "none", label: "No Scale Card", icon: <Maximize2 className="w-3.5 h-3.5 text-stone-400" /> },
-            ].map((scaleOpt) => {
-              const isSelected = scaleReference === scaleOpt.id;
+          <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
+            {SUGGESTED_SCENARIOS.map((scen) => {
+              const isSelected = selectedScenarioId === scen.id;
               return (
                 <button
-                  key={scaleOpt.id}
+                  key={scen.id}
                   type="button"
-                  onClick={() => setScaleReference(scaleOpt.id as ScaleReferenceType)}
-                  className={`p-2.5 rounded-xl border flex items-center gap-2 transition-all cursor-pointer text-left ${
+                  onClick={() => {
+                    setSelectedScenarioId(scen.id);
+                    setTuningStrategy(scen.strategy);
+                    setConditionPreset(scen.condition as any);
+                    setScaleReference(scen.scale as ScaleReferenceType);
+                  }}
+                  className={`px-3 py-2 rounded-xl text-left transition-all shrink-0 border cursor-pointer ${
                     isSelected
-                      ? "bg-amber-50 border-amber-400 text-amber-950 font-bold shadow-xs"
+                      ? "bg-amber-50 border-amber-400 text-amber-950 font-bold shadow-xs ring-1 ring-amber-400/40"
                       : "bg-stone-50 border-stone-200 text-stone-600 hover:bg-stone-100"
                   }`}
                 >
-                  {scaleOpt.icon}
-                  <span className="text-xs">{scaleOpt.label}</span>
+                  <div className="text-xs font-bold whitespace-nowrap">{scen.label}</div>
+                  <div className="text-[10px] text-stone-500 font-mono whitespace-nowrap">{scen.desc}</div>
                 </button>
               );
             })}
           </div>
         </div>
 
-        {/* Condition Preset Chips */}
-        <div>
-          <label className="block text-xs font-bold text-stone-600 uppercase tracking-wider mb-2">
-            Item Condition State
-          </label>
-
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-            {[
-              { id: "good", label: "Good / Light Wear", desc: "Minor scuffs, normal age" },
-              { id: "mint", label: "Mint / Like New", desc: "No defects or scratches" },
-              { id: "damaged", label: "Damaged / Defective", desc: "Missing parts, chips, breaks" },
-              { id: "untested", label: "Untested / As-Is", desc: "Functional status unknown" },
-            ].map((cond) => {
-              const isSelected = conditionPreset === cond.id;
-              return (
-                <button
-                  key={cond.id}
-                  type="button"
-                  onClick={() => setConditionPreset(cond.id as any)}
-                  className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer ${
-                    isSelected
-                      ? "bg-stone-900 border-stone-800 text-white font-bold shadow-xs"
-                      : "bg-stone-50 border-stone-200 text-stone-600 hover:bg-stone-100"
-                  }`}
-                >
-                  <span className="text-xs block">{cond.label}</span>
-                  <span className="text-[10px] opacity-75 font-normal block mt-0.5">{cond.desc}</span>
-                </button>
-              );
-            })}
+        {/* Core Dropdown Select Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          
+          {/* Dropdown 1: Appraisal Strategy Preset */}
+          <div className="space-y-1.5">
+            <label className="block text-xs font-bold text-stone-700 uppercase tracking-wider flex items-center justify-between">
+              <span>1. Appraisal Tuning Strategy</span>
+              <span className="text-[10px] text-amber-600 font-mono font-normal">Controls AI risk & ROI requirement</span>
+            </label>
+            <div className="relative">
+              <select
+                value={tuningStrategy}
+                onChange={(e) => {
+                  setTuningStrategy(e.target.value);
+                  setSelectedScenarioId(null);
+                }}
+                className="w-full text-xs font-semibold p-3 pr-8 rounded-xl border border-stone-300 bg-stone-50 text-stone-900 focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-500 cursor-pointer appearance-none shadow-xs"
+              >
+                {TUNING_PRESETS.map((preset) => (
+                  <option key={preset.id} value={preset.id}>
+                    {preset.name}
+                  </option>
+                ))}
+              </select>
+              <ChevronDown className="w-4 h-4 text-stone-500 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+            </div>
           </div>
+
+          {/* Dropdown 2: Item Condition State */}
+          <div className="space-y-1.5">
+            <label className="block text-xs font-bold text-stone-700 uppercase tracking-wider flex items-center justify-between">
+              <span>2. Item Condition State</span>
+              <span className="text-[10px] text-stone-400 font-mono font-normal">Applies condition discount</span>
+            </label>
+            <div className="relative">
+              <select
+                value={conditionPreset}
+                onChange={(e) => {
+                  setConditionPreset(e.target.value as any);
+                  setSelectedScenarioId(null);
+                }}
+                className="w-full text-xs font-semibold p-3 pr-8 rounded-xl border border-stone-300 bg-stone-50 text-stone-900 focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-500 cursor-pointer appearance-none shadow-xs"
+              >
+                <option value="good">Good / Light Wear (Minor scuffs, normal age)</option>
+                <option value="mint">Mint / Like New (No defects or scratches)</option>
+                <option value="damaged">Damaged / Defective (Missing parts, chips, breaks)</option>
+                <option value="untested">Untested / As-Is (Functional status unknown)</option>
+              </select>
+              <ChevronDown className="w-4 h-4 text-stone-500 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+            </div>
+          </div>
+
+          {/* Dropdown 3: Scale Reference Object */}
+          <div className="space-y-1.5">
+            <label className="block text-xs font-bold text-stone-700 uppercase tracking-wider flex items-center justify-between">
+              <span>3. Scale Reference Object</span>
+              <span className="text-[10px] text-amber-600 font-mono font-normal">Computes dimensions in cm</span>
+            </label>
+            <div className="relative">
+              <select
+                value={scaleReference}
+                onChange={(e) => {
+                  setScaleReference(e.target.value as ScaleReferenceType);
+                  setSelectedScenarioId(null);
+                }}
+                className="w-full text-xs font-semibold p-3 pr-8 rounded-xl border border-stone-300 bg-stone-50 text-stone-900 focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-500 cursor-pointer appearance-none shadow-xs"
+              >
+                <option value="credit_card">Credit Card / ID Card (85.6mm x 53.98mm)</option>
+                <option value="quarter">US Quarter Coin (24.26mm diameter)</option>
+                <option value="ruler">Physical Ruler / Tape in Frame</option>
+                <option value="none">Visual Estimate (No Scale Card)</option>
+              </select>
+              <ChevronDown className="w-4 h-4 text-stone-500 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+            </div>
+          </div>
+
+          {/* Dropdown 4: Specialty Focus Rulebook */}
+          <div className="space-y-1.5">
+            <label className="block text-xs font-bold text-stone-700 uppercase tracking-wider flex items-center justify-between">
+              <span>4. Specialty Focus Rulebook</span>
+              <span className="text-[10px] text-stone-400 font-mono font-normal">Applies specialty prompts</span>
+            </label>
+            <div className="relative">
+              <select
+                value={activeNiche.id}
+                onChange={(e) => {
+                  const found = NICHE_CONFIGS.find(n => n.id === e.target.value);
+                  if (found && onSelectNiche) onSelectNiche(found);
+                }}
+                className="w-full text-xs font-semibold p-3 pr-8 rounded-xl border border-stone-300 bg-stone-50 text-stone-900 focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-500 cursor-pointer appearance-none shadow-xs"
+              >
+                {NICHE_CONFIGS.map(niche => (
+                  <option key={niche.id} value={niche.id}>
+                    {niche.id === 'auto' ? "✨ Auto-Detect Focus (AI Research Auto-Classifies)" : `${niche.name} Focus`}
+                  </option>
+                ))}
+              </select>
+              <ChevronDown className="w-4 h-4 text-stone-500 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+            </div>
+          </div>
+
         </div>
+
+        {/* Active Strategy Explanation & Parameter Card */}
+        {(() => {
+          const activePreset = TUNING_PRESETS.find(p => p.id === tuningStrategy) || TUNING_PRESETS[0];
+          return (
+            <div className="p-4 rounded-xl bg-gradient-to-br from-amber-50/80 via-amber-50/40 to-stone-50 border border-amber-200/90 space-y-3 shadow-xs">
+              
+              <div className="flex items-center justify-between gap-2 border-b border-amber-200/60 pb-2">
+                <div className="flex items-center gap-2">
+                  <span className="px-2.5 py-0.5 rounded-md bg-amber-500 text-stone-950 text-xs font-mono font-black">
+                    {activePreset.badge}
+                  </span>
+                  <span className="text-xs font-bold font-display text-stone-900">
+                    {activePreset.name}
+                  </span>
+                </div>
+                <span className="text-[10px] font-mono text-stone-500">Active Tuning Profile</span>
+              </div>
+
+              <p className="text-xs text-stone-700 leading-relaxed">
+                <strong>Strategy Explanation:</strong> {activePreset.explanation}
+              </p>
+
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1 font-mono text-[11px]">
+                <div className="p-2 rounded-lg bg-white border border-stone-200">
+                  <span className="text-[9px] text-stone-400 block uppercase font-sans">Target Margin</span>
+                  <strong className="text-emerald-600 block">{activePreset.targetMargin}</strong>
+                </div>
+                <div className="p-2 rounded-lg bg-white border border-stone-200">
+                  <span className="text-[9px] text-stone-400 block uppercase font-sans">Risk Tolerance</span>
+                  <strong className="text-amber-700 block">{activePreset.riskTolerance}</strong>
+                </div>
+                <div className="p-2 rounded-lg bg-white border border-stone-200">
+                  <span className="text-[9px] text-stone-400 block uppercase font-sans">Fee Buffer</span>
+                  <strong className="text-indigo-600 block">{activePreset.feeDeduction}</strong>
+                </div>
+                <div className="p-2 rounded-lg bg-white border border-stone-200">
+                  <span className="text-[9px] text-stone-400 block uppercase font-sans">Recommended For</span>
+                  <strong className="text-stone-700 block truncate">{activePreset.recommendedFor}</strong>
+                </div>
+              </div>
+
+              <div className="pt-1 flex flex-wrap items-center gap-2 text-[10px] text-stone-600 font-mono">
+                <span className="font-bold text-amber-800">AI Focus Points:</span>
+                {activePreset.keyChecklist.map((item, idx) => (
+                  <span key={idx} className="px-2 py-0.5 rounded-md bg-white border border-stone-200 text-stone-700 flex items-center gap-1">
+                    <Check className="w-3 h-3 text-emerald-600 stroke-[3]" />
+                    {item}
+                  </span>
+                ))}
+              </div>
+
+            </div>
+          );
+        })()}
+
+        {/* Expandable "How Tuning Works" Info Drawer */}
+        {showTuningExplanationDrawer && (
+          <div className="p-4 rounded-xl bg-stone-900 text-stone-200 text-xs space-y-3 animate-fadeIn border border-stone-800">
+            <div className="flex items-center justify-between border-b border-stone-800 pb-2">
+              <span className="font-bold text-amber-400 font-display flex items-center gap-1.5">
+                <Info className="w-4 h-4 text-amber-400" />
+                How Appraisal Tuning Controls Work in FlipFindr
+              </span>
+              <button
+                type="button"
+                onClick={() => setShowTuningExplanationDrawer(false)}
+                className="text-stone-400 hover:text-white cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-[11px] leading-relaxed">
+              <div className="p-2.5 rounded-lg bg-stone-950 border border-stone-800 space-y-1">
+                <strong className="text-amber-300 block font-mono">1. Tuning Strategy Dropdown</strong>
+                <p className="text-stone-400">
+                  Directly injects risk guidelines into the Gemini AI prompt. For example, <em>Conservative Thrift</em> forces a 3x profit threshold before recommending BUY, while <em>Yard Sale Blitz</em> allows quick $1-$5 flip calls.
+                </p>
+              </div>
+
+              <div className="p-2.5 rounded-lg bg-stone-950 border border-stone-800 space-y-1">
+                <strong className="text-emerald-300 block font-mono">2. Scale Reference Object</strong>
+                <p className="text-stone-400">
+                  Using a credit card (85.6mm) or quarter (24.26mm) in the photo lets the vision AI compute precise physical width, height, and depth in centimeters via optical pixel ratios.
+                </p>
+              </div>
+
+              <div className="p-2.5 rounded-lg bg-stone-950 border border-stone-800 space-y-1">
+                <strong className="text-indigo-300 block font-mono">3. Condition & Wear Details</strong>
+                <p className="text-stone-400">
+                  Specifying 'Damaged' drops estimated comps by 70-90% and changes the recommendation to SKIP unless high restoration upside exists.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Wear Notes Input */}
         <div>

@@ -47,8 +47,29 @@ export default function App() {
       const items = await loadStorageData<ScannedItem[]>("flipfindr_scanned_items", []);
       const queue = await loadStorageData<OfflineQueueItem[]>("flipfindr_offline_queue", []);
       if (isMounted) {
-        setScannedItems(items);
-        setOfflineQueue(queue);
+        // Guarantee unique IDs across loaded items to prevent duplicate key React errors
+        const seenIds = new Set<string>();
+        const sanitizedItems = items.map((item, idx) => {
+          let itemId = item.id;
+          if (!itemId || seenIds.has(itemId)) {
+            itemId = `${itemId || "scan"}-${Date.now()}-${idx}-${Math.random().toString(36).substr(2, 5)}`;
+          }
+          seenIds.add(itemId);
+          return { ...item, id: itemId };
+        });
+
+        const seenQueueIds = new Set<string>();
+        const sanitizedQueue = queue.map((qItem, idx) => {
+          let qId = qItem.id;
+          if (!qId || seenQueueIds.has(qId)) {
+            qId = `${qId || "off"}-${Date.now()}-${idx}-${Math.random().toString(36).substr(2, 5)}`;
+          }
+          seenQueueIds.add(qId);
+          return { ...qItem, id: qId };
+        });
+
+        setScannedItems(sanitizedItems);
+        setOfflineQueue(sanitizedQueue);
       }
     }
     initData();
@@ -147,7 +168,7 @@ export default function App() {
   // Load sample demo item for instant onboarding test
   const handleLoadSampleItem = () => {
     const sampleDemoItem: ScannedItem = {
-      id: "scan-sample-pyrex",
+      id: "scan-sample-pyrex-" + Date.now() + "-" + Math.random().toString(36).substr(2, 5),
       image: "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='600' height='600' viewBox='0 0 600 600'><defs><radialGradient id='bg' cx='50%' cy='40%' r='60%'><stop offset='0%' stop-color='%231e293b'/><stop offset='100%' stop-color='%230f172a'/></radialGradient></defs><rect width='600' height='600' fill='url(%23bg)'/><ellipse cx='300' cy='440' rx='200' ry='30' fill='%23000' opacity='0.5'/><rect x='160' y='200' width='280' height='180' rx='40' fill='%23fef08a' stroke='%23eab308' stroke-width='6'/><ellipse cx='300' cy='200' rx='140' ry='25' fill='%23ffffff' opacity='0.9' stroke='%23e2e8f0' stroke-width='3'/><circle cx='250' cy='290' r='18' fill='%23eab308'/><circle cx='300' cy='290' r='18' fill='%23eab308'/><circle cx='350' cy='290' r='18' fill='%23eab308'/><text x='300' y='480' font-family='sans-serif' font-weight='bold' font-size='22' fill='%23f8fafc' text-anchor='middle'>VINTAGE PYREX 1970s</text><text x='300' y='510' font-family='sans-serif' font-size='14' fill='%23fbbf24' text-anchor='middle'>Daisy %23475-B 2.5L Casserole</text></svg>",
       nicheId: "general",
       scannedAt: new Date().toISOString(),
@@ -463,6 +484,7 @@ export default function App() {
                 setShowDossierModal(true);
                 setActiveTab("dossier");
               }}
+              onStartScan={() => setActiveTab("scanner")}
             />
           )}
 

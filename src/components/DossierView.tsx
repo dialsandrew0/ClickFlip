@@ -31,7 +31,7 @@ export default function DossierView({
   onViewInventory,
   onDeleteItem,
 }: DossierViewProps) {
-  const [activeSection, setActiveSection] = useState<"summary" | "forensics" | "strategy" | "knockout">("summary");
+  const [activeSection, setActiveSection] = useState<"knockout" | "forensics" | "strategy" | "summary">("knockout");
   const [copiedTitle, setCopiedTitle] = useState(false);
   const [copiedDesc, setCopiedDesc] = useState(false);
   const [checkedKnockouts, setCheckedKnockouts] = useState<Record<string, boolean>>({});
@@ -179,71 +179,266 @@ export default function DossierView({
         </div>
       </div>
 
-      {/* Internal Section Switcher Navigation Tabs */}
-      <div className="bg-white rounded-2xl border border-stone-200 p-1.5 flex gap-1 shadow-xs overflow-x-auto">
+      {/* Sequential Sourcing Workflow Navigation Tabs */}
+      <div className="bg-white rounded-2xl border border-stone-200 p-1.5 flex gap-1.5 shadow-xs overflow-x-auto">
         <button
           type="button"
-          onClick={() => setActiveSection("summary")}
-          className={`flex-1 min-w-[130px] py-2.5 px-4 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-2 ${
-            activeSection === "summary"
-              ? "bg-stone-900 text-white shadow-xs"
-              : "text-stone-600 hover:bg-stone-100"
+          onClick={() => setActiveSection("knockout")}
+          className={`flex-1 min-w-[150px] py-2.5 px-3 rounded-xl text-xs font-bold transition-all cursor-pointer flex flex-col items-center justify-center gap-1 ${
+            activeSection === "knockout"
+              ? "bg-amber-500 text-stone-950 shadow-sm border border-amber-400 font-extrabold"
+              : "bg-stone-50 text-stone-700 hover:bg-stone-100 border border-stone-200"
           }`}
         >
-          <FileText className="w-4 h-4 text-amber-400" />
-          <span>Listing Kit</span>
+          <div className="flex items-center gap-1.5">
+            <CheckCircle className="w-3.5 h-3.5" />
+            <span>1. In-Hand Checklist</span>
+          </div>
+          <span className="text-[10px] font-mono opacity-80 font-normal">Step 1: Physical Defect Check</span>
         </button>
 
         <button
           type="button"
           onClick={() => setActiveSection("forensics")}
-          className={`flex-1 min-w-[130px] py-2.5 px-4 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-2 ${
+          className={`flex-1 min-w-[150px] py-2.5 px-3 rounded-xl text-xs font-bold transition-all cursor-pointer flex flex-col items-center justify-center gap-1 ${
             activeSection === "forensics"
-              ? "bg-stone-900 text-white shadow-xs"
-              : "text-stone-600 hover:bg-stone-100"
+              ? "bg-stone-900 text-white shadow-sm border border-stone-800 font-extrabold"
+              : "bg-stone-50 text-stone-700 hover:bg-stone-100 border border-stone-200"
           }`}
         >
-          <ShieldCheck className="w-4 h-4 text-emerald-400" />
-          <span>Forensic Tells</span>
+          <div className="flex items-center gap-1.5">
+            <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+            <span>2. Forensic Tells</span>
+          </div>
+          <span className="text-[10px] font-mono opacity-80 font-normal">Step 2: Hallmarks & Repros</span>
         </button>
 
         <button
           type="button"
           onClick={() => setActiveSection("strategy")}
-          className={`flex-1 min-w-[130px] py-2.5 px-4 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-2 ${
+          className={`flex-1 min-w-[150px] py-2.5 px-3 rounded-xl text-xs font-bold transition-all cursor-pointer flex flex-col items-center justify-center gap-1 ${
             activeSection === "strategy"
-              ? "bg-stone-900 text-white shadow-xs"
-              : "text-stone-600 hover:bg-stone-100"
+              ? "bg-stone-900 text-white shadow-sm border border-stone-800 font-extrabold"
+              : "bg-stone-50 text-stone-700 hover:bg-stone-100 border border-stone-200"
           }`}
         >
-          <TrendingUp className="w-4 h-4 text-indigo-400" />
-          <span>Market Strategy</span>
+          <div className="flex items-center gap-1.5">
+            <TrendingUp className="w-3.5 h-3.5 text-indigo-400" />
+            <span>3. Market Strategy</span>
+          </div>
+          <span className="text-[10px] font-mono opacity-80 font-normal">Step 3: Platforms & Comps</span>
         </button>
 
         <button
           type="button"
-          onClick={() => setActiveSection("knockout")}
-          className={`flex-1 min-w-[130px] py-2.5 px-4 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-2 ${
-            activeSection === "knockout"
-              ? "bg-stone-900 text-white shadow-xs"
-              : "text-stone-600 hover:bg-stone-100"
+          onClick={() => setActiveSection("summary")}
+          className={`flex-1 min-w-[150px] py-2.5 px-3 rounded-xl text-xs font-bold transition-all cursor-pointer flex flex-col items-center justify-center gap-1 ${
+            activeSection === "summary"
+              ? "bg-stone-900 text-white shadow-sm border border-stone-800 font-extrabold"
+              : "bg-stone-50 text-stone-700 hover:bg-stone-100 border border-stone-200"
           }`}
         >
-          <CheckCircle className="w-4 h-4 text-rose-400" />
-          <span>In-Hand Checklist</span>
+          <div className="flex items-center gap-1.5">
+            <ShoppingBag className="w-3.5 h-3.5 text-amber-400" />
+            <span>4. Resale Listing Kit</span>
+          </div>
+          <span className="text-[10px] font-mono opacity-80 font-normal">Step 4: Copy SEO Copywrite</span>
         </button>
       </div>
 
-      {/* SECTION 1: LISTING KIT */}
+      {/* STEP 1: IN-HAND PHYSICAL CHECKLIST */}
+      {activeSection === "knockout" && (
+        <div className="bg-stone-950 text-stone-100 rounded-3xl p-6 border border-stone-800 shadow-xl space-y-5">
+          <div className="border-b border-stone-800 pb-3 flex items-center justify-between">
+            <div>
+              <div className="text-[10px] font-mono uppercase tracking-wider text-amber-400 font-bold mb-0.5">
+                Phase 1 • Immediate Field Inspection
+              </div>
+              <h3 className="text-base font-bold font-display text-white flex items-center gap-2">
+                <CheckCircle className="w-5 h-5 text-amber-400" />
+                1. In-Hand Physical Inspection Checklist
+              </h3>
+              <p className="text-xs text-stone-400 mt-0.5">Tap each item as you physically inspect the object in your hands before purchasing or packing.</p>
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            {(verdict.reproTells && verdict.reproTells.length > 0
+              ? verdict.reproTells
+              : [
+                  "Verify hallmark relief stamp or maker signature on base",
+                  "Check for hidden hairline cracks under bright focal light",
+                  "Verify weight resonance, heft, and material coldness",
+                  "Inspect edges, handles, and rims for micro flea-bites or chips"
+                ]
+            ).map((check, idx) => {
+              const isChecked = !!checkedKnockouts[idx];
+              return (
+                <button
+                  key={idx}
+                  type="button"
+                  onClick={() => toggleKnockout(idx)}
+                  className={`w-full text-left p-3.5 rounded-2xl border text-xs flex items-start gap-3 transition-all cursor-pointer ${
+                    isChecked
+                      ? "bg-emerald-950/80 border-emerald-500/80 text-emerald-200 line-through opacity-85"
+                      : "bg-stone-900 border-stone-800 text-stone-200 hover:border-stone-700"
+                  }`}
+                >
+                  <div className={`w-5 h-5 rounded-lg border shrink-0 flex items-center justify-center mt-0.5 ${
+                    isChecked ? "bg-emerald-500 border-emerald-400 text-stone-950" : "border-stone-600 bg-stone-950"
+                  }`}>
+                    {isChecked && <Check className="w-3.5 h-3.5 stroke-[3]" />}
+                  </div>
+                  <span className="leading-relaxed font-medium">{check}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* STEP 2: FORENSIC AUTHENTICITY TELLS */}
+      {activeSection === "forensics" && (
+        <div className="bg-white rounded-3xl p-6 border border-stone-200 shadow-sm space-y-6">
+          <div className="border-b border-stone-100 pb-3">
+            <div className="text-[10px] font-mono uppercase tracking-wider text-emerald-600 font-bold mb-0.5">
+              Phase 2 • Verification & Authentication
+            </div>
+            <h3 className="text-base font-bold text-stone-900 flex items-center gap-2">
+              <ShieldCheck className="w-5 h-5 text-emerald-600" />
+              2. Forensic Authenticity & Hallmark Analysis
+            </h3>
+            <p className="text-xs text-stone-500 mt-0.5">Verified maker stamps, period hallmarks, material patina, and reproduction red flags.</p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            
+            {/* Key Identifiers */}
+            <div className="bg-stone-50 p-4 rounded-2xl border border-stone-200 space-y-3">
+              <h4 className="text-xs font-bold font-mono text-stone-800 uppercase tracking-wider flex items-center gap-1.5">
+                <Tag className="w-4 h-4 text-indigo-600" />
+                Verified Key Identifiers
+              </h4>
+              <ul className="space-y-1.5 text-xs text-stone-700">
+                {(verdict.keyIdentifiers && verdict.keyIdentifiers.length > 0 
+                  ? verdict.keyIdentifiers 
+                  : ["Maker stamp verified on base", "Authentic period material patina present"]
+                ).map((idStr, idx) => (
+                  <li key={idx} className="flex items-start gap-2">
+                    <span className="text-indigo-500 font-bold">•</span>
+                    <span>{idStr}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Reproduction Red Flags */}
+            <div className="bg-amber-50/60 p-4 rounded-2xl border border-amber-200/80 space-y-3">
+              <h4 className="text-xs font-bold font-mono text-amber-900 uppercase tracking-wider flex items-center gap-1.5">
+                <AlertTriangle className="w-4 h-4 text-amber-600" />
+                Reproduction Red Flags & Tells
+              </h4>
+              <ul className="space-y-1.5 text-xs text-amber-900">
+                {(verdict.reproTells && verdict.reproTells.length > 0
+                  ? verdict.reproTells
+                  : ["Check for modern seam casts or casting bubbles", "Verify weight resonance against authentic vintage examples"]
+                ).map((tell, idx) => (
+                  <li key={idx} className="flex items-start gap-2">
+                    <span className="text-amber-600 font-bold">•</span>
+                    <span>{tell}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+          </div>
+
+          {/* Valuation Methodology */}
+          <div className="bg-stone-900 text-stone-200 p-4 rounded-2xl border border-stone-800 text-xs space-y-1 font-mono">
+            <span className="text-amber-400 font-bold uppercase tracking-wider block text-[10px]">Valuation Methodology & Formula</span>
+            <p className="text-stone-300 leading-relaxed font-sans">
+              {verdict.valuationMethodology || "90-day sold historical marketplace averages filtered by condition quality grade."}
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* STEP 3: MARKETPLACE SALES STRATEGY */}
+      {activeSection === "strategy" && (
+        <div className="bg-white rounded-3xl p-6 border border-stone-200 shadow-sm space-y-6">
+          <div className="flex items-center justify-between border-b border-stone-100 pb-3">
+            <div>
+              <div className="text-[10px] font-mono uppercase tracking-wider text-indigo-600 font-bold mb-0.5">
+                Phase 3 • Profit Channel Strategy
+              </div>
+              <h3 className="text-base font-bold text-stone-900 flex items-center gap-2">
+                <TrendingUp className="w-5 h-5 text-indigo-600" />
+                3. Marketplace Sales Strategy & Direct Comps
+              </h3>
+              <p className="text-xs text-stone-500 mt-0.5">Optimal listing channels, estimated turnaround times, and verified sold transaction comps.</p>
+            </div>
+
+            {verdict.ebaySoldSearchUrl && (
+              <a
+                href={verdict.ebaySoldSearchUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="px-3.5 py-2 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-bold flex items-center gap-1.5 border border-indigo-200 transition-colors cursor-pointer"
+              >
+                <span>eBay Sold Comps</span>
+                <ExternalLink className="w-3.5 h-3.5" />
+              </a>
+            )}
+          </div>
+
+          {/* Strategy Pathways */}
+          {verdict.nextMoveStrategy && (
+            <div className="space-y-4">
+              <div className="bg-indigo-950 text-indigo-100 p-4 rounded-2xl border border-indigo-900 text-xs space-y-1">
+                <span className="text-indigo-400 font-bold font-mono text-[10px] uppercase tracking-wider block">Best Resale Path</span>
+                <p className="leading-relaxed font-medium">{verdict.nextMoveStrategy.bestOverallPath}</p>
+              </div>
+
+              {verdict.nextMoveStrategy.pathways && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {verdict.nextMoveStrategy.pathways.map((path, idx) => (
+                    <div key={idx} className="bg-stone-50 p-3.5 rounded-2xl border border-stone-200 text-xs space-y-1.5">
+                      <div className="flex items-center justify-between font-bold font-mono text-stone-800">
+                        <span>{path.targetPlatform}</span>
+                        <span className="text-emerald-600 font-mono text-[11px]">{path.estimatedPayout}</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-[10px] text-stone-500 font-mono">
+                        <span>Turnaround: {path.turnaroundTime}</span>
+                        <span>•</span>
+                        <span>Suitability: {path.suitabilityScore}%</span>
+                      </div>
+                      {path.stepsToExecute && path.stepsToExecute[0] && (
+                        <p className="text-stone-600 text-[11px] leading-relaxed pt-1">
+                          {path.stepsToExecute[0]}
+                        </p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* STEP 4: RESALE LISTING KIT */}
       {activeSection === "summary" && (
         <div className="bg-white rounded-3xl p-6 border border-stone-200 shadow-sm space-y-6">
           <div className="flex items-center justify-between border-b border-stone-100 pb-3">
             <div>
+              <div className="text-[10px] font-mono uppercase tracking-wider text-amber-600 font-bold mb-0.5">
+                Phase 4 • Marketplace Listing Creation
+              </div>
               <h3 className="text-base font-bold text-stone-900 flex items-center gap-2">
                 <ShoppingBag className="w-5 h-5 text-amber-500" />
-                1-Tap Resale Copywriter Kit
+                4. E-Commerce Resale Copywriter & Listing Kit
               </h3>
-              <p className="text-xs text-stone-500">Ready to copy directly into eBay, Poshmark, Mercari, or Grailed.</p>
+              <p className="text-xs text-stone-500 mt-0.5">1-Tap copyable titles and detailed descriptions ready for eBay, Poshmark, Mercari, or Etsy.</p>
             </div>
           </div>
 
@@ -306,175 +501,6 @@ export default function DossierView({
               </div>
             </div>
           )}
-        </div>
-      )}
-
-      {/* SECTION 2: FORENSIC TELLS */}
-      {activeSection === "forensics" && (
-        <div className="bg-white rounded-3xl p-6 border border-stone-200 shadow-sm space-y-6">
-          <div className="border-b border-stone-100 pb-3">
-            <h3 className="text-base font-bold text-stone-900 flex items-center gap-2">
-              <ShieldCheck className="w-5 h-5 text-emerald-600" />
-              Forensic Authenticity & Reproduction Analysis
-            </h3>
-            <p className="text-xs text-stone-500">Hallmarks, maker stamps, and physical tells verified during camera scan.</p>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            
-            {/* Key Identifiers */}
-            <div className="bg-stone-50 p-4 rounded-2xl border border-stone-200 space-y-3">
-              <h4 className="text-xs font-bold font-mono text-stone-800 uppercase tracking-wider flex items-center gap-1.5">
-                <Tag className="w-4 h-4 text-indigo-600" />
-                Key Hallmarks & Identifiers
-              </h4>
-              <ul className="space-y-1.5 text-xs text-stone-700">
-                {(verdict.keyIdentifiers && verdict.keyIdentifiers.length > 0 
-                  ? verdict.keyIdentifiers 
-                  : ["Maker stamp verified on base", "Authentic material patina present"]
-                ).map((idStr, idx) => (
-                  <li key={idx} className="flex items-start gap-2">
-                    <span className="text-indigo-500 font-bold">•</span>
-                    <span>{idStr}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            {/* Reproduction Red Flags */}
-            <div className="bg-amber-50/60 p-4 rounded-2xl border border-amber-200/80 space-y-3">
-              <h4 className="text-xs font-bold font-mono text-amber-900 uppercase tracking-wider flex items-center gap-1.5">
-                <AlertTriangle className="w-4 h-4 text-amber-600" />
-                Reproduction Red Flags & Tells
-              </h4>
-              <ul className="space-y-1.5 text-xs text-amber-900">
-                {(verdict.reproTells && verdict.reproTells.length > 0
-                  ? verdict.reproTells
-                  : ["Check for modern seam casts or casting bubbles", "Verify weight resonance against authentic vintage examples"]
-                ).map((tell, idx) => (
-                  <li key={idx} className="flex items-start gap-2">
-                    <span className="text-amber-600 font-bold">•</span>
-                    <span>{tell}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-          </div>
-
-          {/* Valuation Methodology */}
-          <div className="bg-stone-900 text-stone-200 p-4 rounded-2xl border border-stone-800 text-xs space-y-1 font-mono">
-            <span className="text-amber-400 font-bold uppercase tracking-wider block text-[10px]">Valuation Methodology & Formula</span>
-            <p className="text-stone-300 leading-relaxed font-sans">
-              {verdict.valuationMethodology || "90-day sold historical marketplace averages filtered by condition quality grade."}
-            </p>
-          </div>
-        </div>
-      )}
-
-      {/* SECTION 3: MARKET STRATEGY */}
-      {activeSection === "strategy" && (
-        <div className="bg-white rounded-3xl p-6 border border-stone-200 shadow-sm space-y-6">
-          <div className="flex items-center justify-between border-b border-stone-100 pb-3">
-            <div>
-              <h3 className="text-base font-bold text-stone-900 flex items-center gap-2">
-                <TrendingUp className="w-5 h-5 text-indigo-600" />
-                Marketplace Sales Strategy & Direct Comps
-              </h3>
-              <p className="text-xs text-stone-500">Optimized listing channels and sold transaction historical evidence.</p>
-            </div>
-
-            {verdict.ebaySoldSearchUrl && (
-              <a
-                href={verdict.ebaySoldSearchUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="px-3.5 py-2 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-bold flex items-center gap-1.5 border border-indigo-200 transition-colors cursor-pointer"
-              >
-                <span>eBay Sold Comps</span>
-                <ExternalLink className="w-3.5 h-3.5" />
-              </a>
-            )}
-          </div>
-
-          {/* Strategy Pathways */}
-          {verdict.nextMoveStrategy && (
-            <div className="space-y-4">
-              <div className="bg-indigo-950 text-indigo-100 p-4 rounded-2xl border border-indigo-900 text-xs space-y-1">
-                <span className="text-indigo-400 font-bold font-mono text-[10px] uppercase tracking-wider block">Best Resale Path</span>
-                <p className="leading-relaxed">{verdict.nextMoveStrategy.bestOverallPath}</p>
-              </div>
-
-              {verdict.nextMoveStrategy.pathways && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {verdict.nextMoveStrategy.pathways.map((path, idx) => (
-                    <div key={idx} className="bg-stone-50 p-3.5 rounded-2xl border border-stone-200 text-xs space-y-1.5">
-                      <div className="flex items-center justify-between font-bold font-mono text-stone-800">
-                        <span>{path.targetPlatform}</span>
-                        <span className="text-emerald-600 font-mono text-[11px]">{path.estimatedPayout}</span>
-                      </div>
-                      <div className="flex items-center gap-2 text-[10px] text-stone-500 font-mono">
-                        <span>Turnaround: {path.turnaroundTime}</span>
-                        <span>•</span>
-                        <span>Suitability: {path.suitabilityScore}%</span>
-                      </div>
-                      {path.stepsToExecute && path.stepsToExecute[0] && (
-                        <p className="text-stone-600 text-[11px] leading-relaxed pt-1">
-                          {path.stepsToExecute[0]}
-                        </p>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* SECTION 4: IN-HAND CHECKLIST */}
-      {activeSection === "knockout" && (
-        <div className="bg-stone-950 text-stone-100 rounded-3xl p-6 border border-stone-800 shadow-xl space-y-5">
-          <div className="border-b border-stone-800 pb-3">
-            <h3 className="text-base font-bold font-display text-amber-300 flex items-center gap-2">
-              <CheckCircle className="w-5 h-5 text-amber-400" />
-              In-Hand Knockout Physical Verification
-            </h3>
-            <p className="text-xs text-stone-400">Tap to check off physical hallmarks or damage points before buying or shipping.</p>
-          </div>
-
-          <div className="space-y-2">
-            {(verdict.reproTells && verdict.reproTells.length > 0
-              ? verdict.reproTells
-              : [
-                  "Verify hallmark relief stamp on base",
-                  "Check for hidden hairline cracks under intense light",
-                  "Verify weight resonance and material composition",
-                  "Inspect edges and rims for micro-flea bites"
-                ]
-            ).map((check, idx) => {
-              const isChecked = !!checkedKnockouts[idx];
-              return (
-                <button
-                  key={idx}
-                  type="button"
-                  onClick={() => toggleKnockout(idx)}
-                  className={`w-full text-left p-3.5 rounded-2xl border text-xs flex items-start gap-3 transition-all cursor-pointer ${
-                    isChecked
-                      ? "bg-emerald-950/80 border-emerald-500/80 text-emerald-200 line-through opacity-85"
-                      : "bg-stone-900 border-stone-800 text-stone-200 hover:border-stone-700"
-                  }`}
-                >
-                  <div className={`w-5 h-5 rounded-lg border shrink-0 flex items-center justify-center mt-0.5 ${
-                    isChecked ? "bg-emerald-500 border-emerald-400 text-stone-950" : "border-stone-600 bg-stone-950"
-                  }`}>
-                    {isChecked && <Check className="w-3.5 h-3.5 stroke-[3]" />}
-                  </div>
-                  <span className="leading-relaxed">{check}</span>
-                </button>
-              );
-            })}
-          </div>
         </div>
       )}
 

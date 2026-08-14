@@ -25,6 +25,7 @@ export interface ConditionAnswers {
   functional: 'yes' | 'no' | 'untested' | 'na';
   complete: 'yes' | 'no' | 'na';
   wearNotes: string;
+  tuningStrategy?: string; // Appraisal Strategy Preset e.g. 'conservative_thrift', 'yard_sale_flip', etc.
   scaleReference?: ScaleReferenceType; // Standard scale calibration object
   nicheSpecificAnswers?: Record<string, string>; // Maps niche question ID to user answer
 }

@@ -4,6 +4,7 @@ import { NICHE_CONFIGS } from "../nicheConfigs";
 import { IconMap } from "./FocusModuleSelector";
 import NextMovePanel from "./NextMovePanel";
 import StagingPhotoCoachPanel from "./StagingPhotoCoachPanel";
+import { motion } from "motion/react";
 import { 
   Search, 
   Trash2, 
@@ -26,7 +27,13 @@ import {
   CreditCard,
   Download,
   Sparkles,
-  Check
+  Check,
+  Camera,
+  ScanLine,
+  ShieldCheck,
+  ShoppingBag,
+  SearchX,
+  RotateCcw
 } from "lucide-react";
 
 interface InventoryTabProps {
@@ -34,9 +41,10 @@ interface InventoryTabProps {
   onDeleteItem: (id: string) => void;
   onLoadSampleItem?: () => void;
   onInspectDossier?: (item: ScannedItem) => void;
+  onStartScan?: () => void;
 }
 
-export default function InventoryTab({ items, onDeleteItem, onLoadSampleItem, onInspectDossier }: InventoryTabProps) {
+export default function InventoryTab({ items, onDeleteItem, onLoadSampleItem, onInspectDossier, onStartScan }: InventoryTabProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterNiche, setFilterNiche] = useState<string>("all");
   const [expandedItemId, setExpandedItemId] = useState<string | null>(null);
@@ -199,33 +207,213 @@ export default function InventoryTab({ items, onDeleteItem, onLoadSampleItem, on
 
       {/* Items List */}
       {filteredItems.length === 0 ? (
-        <div className="bg-white rounded-2xl border border-stone-200 p-10 sm:p-12 text-center shadow-sm max-w-xl mx-auto space-y-4">
-          <div className="p-3.5 rounded-2xl bg-stone-100 text-stone-400 w-fit mx-auto border border-stone-200">
-            <Layers className="w-8 h-8 text-stone-400" />
-          </div>
-          <div>
-            <p className="text-stone-800 font-bold font-display text-base">No Scouted Items in Ledger</p>
-            <p className="text-xs text-stone-500 mt-1 max-w-sm mx-auto leading-relaxed">
-              {items.length === 0 
-                ? "You haven't scouted any items yet! Snap photos in the Lens Scanner or try a demo appraisal below to see full forensic AI dossiers, Next Move strategy pathways, and AI photo staging."
-                : "No items match your active search terms or specialty filters."}
-            </p>
-          </div>
+        items.length === 0 ? (
+          /* Animated God-Tier Empty State when NO items exist in ledger */
+          <motion.div 
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, ease: "easeOut" }}
+            className="bg-white rounded-3xl border border-stone-200 p-6 sm:p-10 shadow-lg text-center max-w-2xl mx-auto space-y-8 overflow-hidden relative"
+          >
+            {/* Top Badge */}
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-500/10 text-amber-800 border border-amber-300 text-xs font-mono font-bold">
+              <Sparkles className="w-3.5 h-3.5 text-amber-500 fill-amber-500 animate-pulse" />
+              <span>Resale Intelligence Ledger</span>
+            </div>
 
-          {items.length === 0 && onLoadSampleItem && (
+            {/* Interactive Viewfinder Radar Visual */}
+            <div className="relative w-full max-w-md mx-auto aspect-4/3 rounded-3xl bg-stone-950 border border-stone-800 overflow-hidden shadow-2xl flex items-center justify-center p-6 my-2">
+              {/* Radial Grid Pattern */}
+              <div 
+                className="absolute inset-0 opacity-20" 
+                style={{ 
+                  backgroundImage: "radial-gradient(#f59e0b 1px, transparent 1px)", 
+                  backgroundSize: "20px 20px" 
+                }} 
+              />
+
+              {/* Ambient Glowing Aura */}
+              <div className="absolute -top-12 -left-12 w-40 h-40 bg-amber-500/15 rounded-full blur-3xl pointer-events-none" />
+              <div className="absolute -bottom-12 -right-12 w-40 h-40 bg-indigo-500/15 rounded-full blur-3xl pointer-events-none" />
+
+              {/* Vertical Sweeping Radar Laser Beam */}
+              <motion.div
+                animate={{ y: ["-120%", "120%", "-120%"] }}
+                transition={{ duration: 3.8, repeat: Infinity, ease: "easeInOut" }}
+                className="absolute inset-x-0 h-20 bg-gradient-to-b from-transparent via-amber-500/25 to-transparent border-b border-amber-400/50 pointer-events-none z-10"
+              />
+
+              {/* Viewfinder Target Framing Corners */}
+              <div className="absolute top-4 left-4 w-5 h-5 border-t-2 border-l-2 border-amber-400 rounded-tl-md" />
+              <div className="absolute top-4 right-4 w-5 h-5 border-t-2 border-r-2 border-amber-400 rounded-tr-md" />
+              <div className="absolute bottom-4 left-4 w-5 h-5 border-b-2 border-l-2 border-amber-400 rounded-bl-md" />
+              <div className="absolute bottom-4 right-4 w-5 h-5 border-b-2 border-r-2 border-amber-400 rounded-br-md" />
+
+              {/* Center Lens Scanner Target with Pulsing Rings */}
+              <div className="relative z-20 flex flex-col items-center text-center space-y-3">
+                <div className="relative flex items-center justify-center">
+                  <motion.div
+                    animate={{ scale: [1, 1.7, 1], opacity: [0.6, 0, 0.6] }}
+                    transition={{ duration: 2.5, repeat: Infinity, ease: "easeOut" }}
+                    className="absolute w-20 h-20 rounded-full border-2 border-amber-400/50"
+                  />
+                  <motion.div
+                    animate={{ scale: [1, 2.3, 1], opacity: [0.3, 0, 0.3] }}
+                    transition={{ duration: 2.5, repeat: Infinity, ease: "easeOut", delay: 0.7 }}
+                    className="absolute w-20 h-20 rounded-full border border-amber-500/30"
+                  />
+
+                  <motion.button 
+                    whileHover={{ scale: 1.08 }}
+                    whileTap={{ scale: 0.95 }}
+                    type="button"
+                    onClick={onStartScan}
+                    className="w-16 h-16 rounded-2xl bg-gradient-to-br from-amber-400 to-amber-500 text-stone-950 flex items-center justify-center shadow-xl shadow-amber-500/20 border-2 border-amber-200 cursor-pointer relative z-10"
+                  >
+                    <Camera className="w-8 h-8 stroke-[2.5]" />
+                  </motion.button>
+                </div>
+
+                <div className="space-y-0.5">
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-mono font-bold bg-amber-500/10 text-amber-400 border border-amber-500/30">
+                    <ScanLine className="w-3.5 h-3.5 text-amber-400 animate-pulse" />
+                    AI OPTICAL LENS READY
+                  </span>
+                  <p className="text-stone-400 text-[11px] font-mono">Aim camera at stamps, logos, or marks</p>
+                </div>
+              </div>
+
+              {/* Floating Live AI Radar Target Badges */}
+              <motion.div
+                animate={{ y: [0, -5, 0] }}
+                transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+                className="absolute top-5 left-5 z-20 bg-stone-900/90 backdrop-blur-md border border-stone-700/80 rounded-xl px-2.5 py-1.5 shadow-xl flex items-center gap-2"
+              >
+                <div className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+                <span className="text-[10px] font-mono text-stone-200 font-bold">Pyrex Daisy #475</span>
+                <span className="text-[10px] font-mono text-emerald-400 font-black bg-emerald-950/80 px-1.5 py-0.5 rounded border border-emerald-800">+$65.00</span>
+              </motion.div>
+
+              <motion.div
+                animate={{ y: [0, 5, 0] }}
+                transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
+                className="absolute bottom-5 right-5 z-20 bg-stone-900/90 backdrop-blur-md border border-stone-700/80 rounded-xl px-2.5 py-1.5 shadow-xl flex items-center gap-2"
+              >
+                <div className="w-2 h-2 rounded-full bg-amber-400 animate-ping" />
+                <span className="text-[10px] font-mono text-stone-200 font-bold">Mid-Century Brass</span>
+                <span className="text-[10px] font-mono text-amber-400 font-black bg-amber-950/80 px-1.5 py-0.5 rounded border border-amber-800">+$120.00</span>
+              </motion.div>
+            </div>
+
+            {/* Headline & Description */}
+            <div className="space-y-2 max-w-lg mx-auto">
+              <h3 className="text-xl sm:text-2xl font-black font-display text-stone-900 tracking-tight">
+                Your Resale Ledger is Ready
+              </h3>
+              <p className="text-xs text-stone-600 leading-relaxed">
+                Scan your first thrift find, estate discovery, or garage sale treasure to instantly calculate 300%+ ROI margins, generate eBay/Poshmark listing copy, and uncover reproduction red flags.
+              </p>
+            </div>
+
+            {/* Main Action Buttons */}
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-3 max-w-md mx-auto pt-1">
+              {onStartScan && (
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  type="button"
+                  onClick={onStartScan}
+                  className="w-full sm:w-auto px-6 py-3.5 rounded-2xl bg-amber-500 hover:bg-amber-400 text-stone-950 font-black text-xs inline-flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-amber-500/20 border border-amber-400 transition-all"
+                >
+                  <Camera className="w-4 h-4 fill-stone-950" />
+                  <span>Scan First Item in Camera Lens</span>
+                  <ArrowUpRight className="w-4 h-4" />
+                </motion.button>
+              )}
+
+              {onLoadSampleItem && (
+                <button
+                  type="button"
+                  onClick={onLoadSampleItem}
+                  className="w-full sm:w-auto px-5 py-3.5 rounded-2xl bg-stone-100 hover:bg-stone-200 text-stone-800 font-bold text-xs inline-flex items-center justify-center gap-2 cursor-pointer border border-stone-200 transition-all"
+                >
+                  <Sparkles className="w-4 h-4 text-amber-600 fill-amber-600" />
+                  <span>Try Demo 1970s Pyrex Item</span>
+                </button>
+              )}
+            </div>
+
+            {/* 3 Step Quick Start Guide Cards */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-4 text-left border-t border-stone-100">
+              <div className="bg-stone-50 border border-stone-200/80 rounded-2xl p-3.5 space-y-1.5">
+                <div className="flex items-center gap-2 text-stone-900 font-bold text-xs">
+                  <div className="p-1.5 rounded-lg bg-amber-500/10 text-amber-700">
+                    <Camera className="w-3.5 h-3.5" />
+                  </div>
+                  <span>1. Lens Photo Scan</span>
+                </div>
+                <p className="text-[11px] text-stone-500 leading-normal">
+                  Multi-angle photo capture with scale calibration (Credit Card, Coin, Ruler) for 3D item dimensions.
+                </p>
+              </div>
+
+              <div className="bg-stone-50 border border-stone-200/80 rounded-2xl p-3.5 space-y-1.5">
+                <div className="flex items-center gap-2 text-stone-900 font-bold text-xs">
+                  <div className="p-1.5 rounded-lg bg-emerald-500/10 text-emerald-700">
+                    <ShieldCheck className="w-3.5 h-3.5" />
+                  </div>
+                  <span>2. Forensic Comps</span>
+                </div>
+                <p className="text-[11px] text-stone-500 leading-normal">
+                  AI cross-references 18+ eBay sold comps and flags reproduction warning signs & maker stamps.
+                </p>
+              </div>
+
+              <div className="bg-stone-50 border border-stone-200/80 rounded-2xl p-3.5 space-y-1.5">
+                <div className="flex items-center gap-2 text-stone-900 font-bold text-xs">
+                  <div className="p-1.5 rounded-lg bg-indigo-500/10 text-indigo-700">
+                    <ShoppingBag className="w-3.5 h-3.5" />
+                  </div>
+                  <span>3. 1-Tap Listing Kit</span>
+                </div>
+                <p className="text-[11px] text-stone-500 leading-normal">
+                  Generate SEO titles, keywords, and formatted descriptions for eBay, Mercari, & Poshmark.
+                </p>
+              </div>
+            </div>
+          </motion.div>
+        ) : (
+          /* Filtered search/category empty state when items exist but none match search term */
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.98 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-white rounded-2xl border border-stone-200 p-8 text-center shadow-sm max-w-md mx-auto space-y-4"
+          >
+            <div className="p-3.5 rounded-2xl bg-amber-500/10 text-amber-700 w-fit mx-auto border border-amber-200">
+              <SearchX className="w-7 h-7" />
+            </div>
+            <div>
+              <p className="text-stone-900 font-bold font-display text-base">No Matching Scouted Items</p>
+              <p className="text-xs text-stone-500 mt-1 leading-relaxed">
+                No items match your active search filter <span className="font-mono font-bold text-stone-800">"{searchTerm}"</span> or chosen specialty filter.
+              </p>
+            </div>
             <button
               type="button"
-              onClick={onLoadSampleItem}
-              className="px-5 py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-stone-950 font-bold text-xs inline-flex items-center gap-2 cursor-pointer shadow-md transition-all active:scale-95"
+              onClick={() => {
+                setSearchTerm("");
+                setFilterNiche("all");
+              }}
+              className="px-4 py-2.5 rounded-xl bg-stone-900 hover:bg-stone-800 text-white font-bold text-xs inline-flex items-center gap-2 cursor-pointer shadow-xs transition-colors"
             >
-              <Sparkles className="w-4 h-4 fill-stone-950" />
-              <span>Load Sample Scouted Item (1970s Pyrex Casserole)</span>
+              <RotateCcw className="w-3.5 h-3.5" />
+              <span>Reset Search & Filters</span>
             </button>
-          )}
-        </div>
+          </motion.div>
+        )
       ) : (
         <div className="space-y-4">
-          {filteredItems.map((item) => {
+          {filteredItems.map((item, idx) => {
             const niche = NICHE_CONFIGS.find(n => n.id === item.nicheId) || NICHE_CONFIGS[0];
             const NicheIcon = IconMap[niche.icon] || Layers;
             const isExpanded = expandedItemId === item.id;
@@ -238,7 +426,7 @@ export default function InventoryTab({ items, onDeleteItem, onLoadSampleItem, on
 
             return (
               <div 
-                key={item.id}
+                key={item.id || `inv-item-${idx}`}
                 id={`inventory-item-${item.id}`}
                 className={`bg-white rounded-2xl border transition-all duration-300 overflow-hidden shadow-sm ${
                   isExpanded ? "border-stone-400 ring-2 ring-stone-900/5" : "border-stone-200 hover:border-stone-300"
