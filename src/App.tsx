@@ -7,6 +7,7 @@ import ScannerTab from "./components/ScannerTab";
 import InventoryTab from "./components/InventoryTab";
 import OfflineQueueTab from "./components/OfflineQueueTab";
 import DossierView from "./components/DossierView";
+import DashboardView from "./components/DashboardView";
 import { 
   Wifi, 
   WifiOff, 
@@ -27,11 +28,11 @@ export default function App() {
   const [activeNiche, setActiveNiche] = useState<NicheConfig>(NICHE_CONFIGS[0]);
   const [scannedItems, setScannedItems] = useState<ScannedItem[]>([]);
   const [offlineQueue, setOfflineQueue] = useState<OfflineQueueItem[]>([]);
-  const [activeTab, setActiveTab] = useState<"scanner" | "dossier" | "inventory" | "offline">("scanner");
+  const [activeTab, setActiveTab] = useState<"scanner" | "dossier" | "inventory" | "dashboard" | "offline">("scanner");
   const [activeDossier, setActiveDossier] = useState<ScannedItem | null>(null);
-  const [showDossierModal, setShowDossierModal] = useState<boolean>(false);
   const [isOnline, setIsOnline] = useState<boolean>(navigator.onLine);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [pastCorrections, setPastCorrections] = useState<{originalName: string, correctedName: string}[]>([]);
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
@@ -46,6 +47,7 @@ export default function App() {
     async function initData() {
       const items = await loadStorageData<ScannedItem[]>("flipfindr_scanned_items", []);
       const queue = await loadStorageData<OfflineQueueItem[]>("flipfindr_offline_queue", []);
+      const corrections = await loadStorageData<{originalName: string, correctedName: string}[]>("flipfindr_corrections", []);
       if (isMounted) {
         // Guarantee unique IDs across loaded items to prevent duplicate key React errors
         const seenIds = new Set<string>();
@@ -70,6 +72,7 @@ export default function App() {
 
         setScannedItems(sanitizedItems);
         setOfflineQueue(sanitizedQueue);
+        setPastCorrections(corrections || []);
       }
     }
     initData();
@@ -107,6 +110,46 @@ export default function App() {
     saveStorageData("flipfindr_offline_queue", updatedQueue);
   };
 
+  const saveCorrections = (updatedCorrections: {originalName: string, correctedName: string}[]) => {
+    setPastCorrections(updatedCorrections);
+    saveStorageData("flipfindr_corrections", updatedCorrections);
+  };
+
+  const handleCorrectItem = (id: string, newName: string) => {
+    let originalName = "";
+    const updatedItems = scannedItems.map(item => {
+      if (item.id === id && item.verdict) {
+        originalName = item.verdict.identifiedName;
+        return {
+          ...item,
+          verdict: {
+            ...item.verdict,
+            identifiedName: newName
+          }
+        };
+      }
+      return item;
+    });
+
+    if (originalName && originalName !== newName) {
+      saveItems(updatedItems);
+      saveCorrections([...pastCorrections, { originalName, correctedName: newName }]);
+      if (activeDossier?.id === id) {
+        setActiveDossier(updatedItems.find(i => i.id === id) || null);
+      }
+      showToast(`✏️ Corrected to: ${newName}`);
+    }
+  };
+
+  const handleUpdateItem = (updatedItem: ScannedItem) => {
+    const updated = scannedItems.map((item) => (item.id === updatedItem.id ? updatedItem : item));
+    saveItems(updated);
+    if (activeDossier?.id === updatedItem.id) {
+      setActiveDossier(updatedItem);
+    }
+    showToast("💾 Sourcing record updated");
+  };
+
   // Select focus niche module
   const handleSelectNiche = (niche: NicheConfig) => {
     setActiveNiche(niche);
@@ -115,6 +158,7 @@ export default function App() {
   // Add a successfully appraised item
   const handleAnalysisComplete = (itemData: {
     image: string;
+    additionalImages?: string[];
     nicheId: string;
     condition: ConditionAnswers;
     quickVerdictOnly: boolean;
@@ -123,31 +167,39 @@ export default function App() {
     const newItem: ScannedItem = {
       id: "scan-" + Math.random().toString(36).substr(2, 9),
       image: itemData.image,
+      additionalImages: itemData.additionalImages,
       nicheId: itemData.nicheId,
+      detectedNicheId: itemData.verdict?.detectedNicheId,
+      detectedNicheName: itemData.verdict?.detectedNicheName,
       scannedAt: new Date().toISOString(),
       condition: itemData.condition,
       quickVerdictOnly: itemData.quickVerdictOnly,
       status: "success",
       verdict: itemData.verdict,
+      resaleStatus: itemData.verdict?.verdict === "BUY" ? "sourced" : "passed",
+      buyPrice: itemData.condition.askingPrice,
+      platformListed: "eBay",
+      dateAcquired: new Date().toISOString(),
     };
 
     const updated = [newItem, ...scannedItems];
     saveItems(updated);
     setActiveDossier(newItem);
-    setShowDossierModal(true);
-    setActiveTab("dossier"); // Automatically focus dedicated dossier review page!
-    showToast(`⚡ Forensic Appraisal Complete: ${newItem.verdict?.identifiedName || "New Item"}`);
+    setActiveTab("dossier");
+    showToast(`⚡ Appraisal Complete: ${newItem.verdict?.identifiedName || "New Item"}`);
   };
 
   // Queue an item offline
   const handleQueueOffline = (offlineData: {
     image: string;
+    additionalImages?: string[];
     condition: ConditionAnswers;
     quickVerdictOnly: boolean;
   }) => {
     const newItem: OfflineQueueItem = {
       id: "off-" + Math.random().toString(36).substr(2, 9),
       image: offlineData.image,
+      additionalImages: offlineData.additionalImages,
       capturedAt: new Date().toISOString(),
       nicheId: activeNiche.id,
       condition: offlineData.condition,
@@ -176,83 +228,107 @@ export default function App() {
         functional: "yes",
         complete: "yes",
         wearNotes: "EXCELLENT VINTAGE CONDITION. No chips or flea bites. Bright daisy pattern.",
+        askingPrice: 8.00,
         scaleReference: "credit_card"
       },
       quickVerdictOnly: false,
       status: "success",
+      resaleStatus: "sourced",
+      buyPrice: 8.00,
+      platformListed: "eBay",
+      dateAcquired: new Date().toISOString(),
       verdict: {
         identifiedName: "1970s Pyrex Daisy Sunflower #475-B 2.5L Casserole Dish with Opal Lid",
         category: "Vintage Kitchenware & Collectible Glassware",
         confidence: 96,
-        confidenceScore: 96,
         lowValue: 48,
         highValue: 95,
         currency: "USD",
         verdict: "BUY",
-        verdictReasoning: "Strong collector demand for pristine Pyrex Daisy/Sunflower patterns. Zero chips or pattern fading on the opal lid.",
+        verdictReasoning: "Strong collector demand for pristine Pyrex Daisy/Sunflower patterns. Zero chips, cracks, or pattern fading on the original opal glass lid.",
         authenticityStatus: "authentic",
-        inspectionPointsToVerify: "Inspect underside base for 'PYREX Made in USA 475-B 2.5L' raised relief mark. Verify opal glass transparency under backlighting.",
+        inspectionPointsToVerify: "Inspect underside base for 'PYREX Made in USA 475-B 2.5L' raised relief stamp. Verify opal glass opacity under backlight.",
         valuationMethodology: "Cross-referenced 18 historical eBay sold comps over the last 90 days for Pyrex Daisy 475-B in original opal lid condition.",
+        marketRange: {
+          low: 48,
+          median: 72,
+          high: 95,
+          compsCount: 18,
+          compDateRange: "Last 90 days (eBay Sold Comps)",
+        },
+        netEstimate: {
+          salePrice: 78,
+          marketplaceFee: 10.34,
+          paymentProcessingFee: 2.56,
+          estimatedShipping: 6.80,
+          packingMaterials: 1.50,
+          acquisitionCost: 8.00,
+          estimatedNetProfit: 48.80,
+          netMarginPercent: 63,
+        },
+        buyCeiling: {
+          maxPurchasePrice: 28.00,
+          targetMarginPercent: 40,
+          logicExplanation: "Guarantees at least a $30+ net margin after typical 13.25% marketplace fees and shipping.",
+        },
+        riskFlags: [
+          { type: "authenticity", severity: "low", message: "Embossed Pyrex maker stamp matches authentic Corning Glass Works 1970s font." },
+          { type: "condition_uncertainty", severity: "low", message: "Zero dishwasher dulling (DWD); bright sunflower screen-print." },
+          { type: "sell_through", severity: "low", message: "High sell-through rate (~84% within 14 days on eBay)." },
+        ],
         measurementsCm: { widthCm: 22.4, heightCm: 11.2, depthCm: 22.4 },
-        reproTells: ["Verify milk glass opacity; authentic 1970s Pyrex has substantial weight and warm cream translucency under light."],
-        keyIdentifiers: ["PYREX Made in USA 475-B 2.5L relief stamp on base", "Original Opal Glass Lid"],
         listingTitle: "Vintage 1970s Pyrex Daisy Sunflower #475-B 2.5L Casserole Dish w/ Opal Lid",
         listingKeywords: ["Vintage Pyrex Daisy", "Pyrex 475 B", "Sunflower Casserole Dish", "1970s Pyrex Opal Lid", "Mid Century Kitchenware"],
         suggestedListingPrice: 78,
         descriptionWriteup: "FOR SALE: Rare vintage 1970s Pyrex Daisy Sunflower #475-B 2.5L Casserole Dish complete with original opal glass lid. Features vibrant yellow daisy screen-print pattern over white milk glass base. Excellent condition with no chips, cracks, or dishwasher dulling. Measurements approximately 22.4cm x 11.2cm.",
         ebaySoldSearchUrl: "https://www.ebay.com/sch/i.html?_nkw=pyrex+daisy+475+b&_sacat=0&LH_Sold=1&LH_Complete=1",
-        nextMoveStrategy: {
-          bestOverallPath: "List as Buy-It-Now on eBay with 'Best Offer' enabled or cross-list to Mercari. High collector demand ensures fast 3-5 day turnaround.",
-          pathways: [
-            {
-              id: "online_marketplace",
-              type: "online_marketplace",
-              targetPlatform: "eBay / Mercari Cross-List",
-              suitabilityScore: 96,
-              estimatedPayout: "$62.80 net after platform fees",
-              turnaroundTime: "2-5 Days",
-              stepsToExecute: [
-                "Create Buy-It-Now listing at $78 with 'Best Offer' enabled above $65",
-                "Copy & paste the AI-optimized listing title and description into eBay",
-                "Ship in double-boxed heavy bubble wrap via USPS Ground Advantage"
-              ],
-              customPostCopy: "FOR SALE: Vintage 1970s Pyrex Daisy Sunflower #475-B 2.5L Casserole Dish with Opal Glass Lid.\n\nPristine condition. No chips, flea bites, or pattern fading. Carefully packed with heavy double-box protection for safe 24-hour shipping dispatch.",
-              proTips: [
-                "Add 'Mid-Century Modern MCM' to eBay search tags for 35% higher view impressions",
-                "Promote listing at 3% ad rate on eBay"
-              ]
-            },
-            {
-              id: "private_collectors",
-              type: "private_collectors",
-              targetPlatform: "Pyrex Collector Groups & Reddit r/Pyrex_Love",
-              suitabilityScore: 90,
-              estimatedPayout: "$70.00 zero platform fee",
-              turnaroundTime: "1-2 Days",
-              stepsToExecute: [
-                "Post tagged timestamp photo in Pyrex Passion collector group",
-                "Accept payment via PayPal Goods & Services"
-              ],
-              customPostCopy: "[FS] Vintage 1970s Pyrex Daisy 475-B 2.5L with Opal Lid. Asking $70 shipped CONUS. Pristine, zero dishwasher haze. PM for photos!",
-              proTips: ["Collectors appreciate backlight photos proving zero pattern scratches"]
-            }
-          ]
+        listings: {
+          ebay: {
+            title: "Vintage 1970s Pyrex Daisy Sunflower #475-B 2.5L Casserole Dish w/ Opal Lid",
+            description: "FOR SALE: Vintage 1970s Pyrex Daisy Sunflower #475-B 2.5L Casserole Dish with original Opal Glass Lid.\n\nCondition: Pristine vintage condition with zero chips, cracks, or dishwasher hazing. Vibrant yellow daisy pattern.\n\nMarkings: Base stamped 'PYREX Made in USA 475-B 2.5L'.\n\nShipping: Double-boxed with heavy bubble wrap within 24 hours.",
+            tags: ["Vintage Pyrex", "Pyrex Daisy", "Pyrex 475 B", "Mid Century Kitchen", "Sunflower Casserole"],
+            suggestedPriceFormat: "Buy It Now at $78 with Best Offer enabled above $65",
+            platformNotes: "Enable Best Offer",
+          },
+          poshmark: {
+            title: "Vintage 1970s Pyrex Daisy 475-B 2.5L Casserole Opal Lid",
+            description: "Vintage 1970s Pyrex Daisy Sunflower 2.5L casserole dish with opal glass lid. Mint vintage condition, vibrant yellow flowers, no chips.",
+            tags: ["pyrex", "vintagekitchen", "midcentury", "daisy"],
+            suggestedPriceFormat: "$75 Fixed Price",
+            platformNotes: "Ships with 5lb Poshmark priority label",
+          },
+          mercari: {
+            title: "Vintage Pyrex Daisy 475-B 2.5L Casserole with Lid",
+            description: "Rare 1970s Pyrex Daisy casserole dish with original opal lid. No dishwasher haze or chips. Packaged securely.",
+            tags: ["Pyrex", "Vintage", "Kitchenware"],
+            suggestedPriceFormat: "$72 Smart Pricing ($65 floor)",
+            platformNotes: "Select Mercari USPS Ground Advantage",
+          },
+          facebook: {
+            title: "Vintage 1970s Pyrex Daisy Sunflower Casserole Dish #475-B",
+            description: "Gorgeous vintage 1970s Pyrex Daisy Sunflower casserole with matching opal glass lid. 2.5L capacity. Perfect condition, no chips or fading. Asking $65 cash local pick-up.",
+            tags: ["pyrex", "antiques", "vintage"],
+            suggestedPriceFormat: "$65 Local Pick-up Cash",
+            platformNotes: "Cross-post in local vintage home decor groups",
+          },
         },
-        stagingPhotoGuide: {
-          backdropRecommendation: "Clean reclaimed oak butcher block or neutral matte slate tabletop.",
-          lightingRecipe: "45-degree indirect natural window light with white foam board shadow reflector.",
-          photoAngles: [
-            { angleName: "Hero 45° Angle with Lid", coachingInstructions: "Show casserole with opal lid angled toward light source.", importance: "essential" },
-            { angleName: "Base Relief Stamp Macro", coachingInstructions: "Close-up macro of 'PYREX 475-B 2.5L' raised relief stamp.", importance: "essential" }
+        nextMoveStrategy: {
+          bestOverallPath: "List as Buy-It-Now on eBay at $78 with 'Best Offer' enabled above $65. High collector demand ensures fast 3-5 day turnaround.",
+          targetPlatform: "eBay / Mercari Cross-List",
+          turnaroundDays: "3-5 Days",
+          priorityChecklist: [
+            "Inspect base relief stamp under direct light to confirm '475-B'",
+            "Wipe gently with warm water and soft cloth; never use dishwasher",
+            "Photograph 5 angles: Hero with lid, base stamp macro, rim edge, pattern close-up",
+            "Copy & paste the AI-optimized title and description into eBay",
+            "Double-box with 2 inches of bubble wrap for safe USPS Ground Advantage dispatch",
           ],
-          aiStagingPrompt: "Studio catalog photo of vintage 1970s yellow Pyrex Daisy casserole dish staged on a clean warm butcher block kitchen counter with soft morning sunlight."
-        }
-      }
+        },
+      },
     };
 
     saveItems([sampleDemoItem, ...scannedItems]);
     setActiveDossier(sampleDemoItem);
-    setShowDossierModal(true);
     setActiveTab("dossier");
     showToast("⚡ Sample 1970s Pyrex Dossier Loaded!");
   };
@@ -275,6 +351,7 @@ export default function App() {
         },
         body: JSON.stringify({
           imageBase64: queueItem.image,
+          additionalImages: queueItem.additionalImages,
           nicheId: queueItem.nicheId,
           nicheName: niche.name,
           quickVerdictOnly: queueItem.quickVerdictOnly,
@@ -282,22 +359,55 @@ export default function App() {
         }),
       });
 
-      const data = await response.json();
+      const contentType = response.headers.get("content-type") || "";
+      let data: any = null;
+      if (contentType.includes("application/json")) {
+        try {
+          data = await response.json();
+        } catch {
+          data = null;
+        }
+      }
 
       if (!response.ok) {
-        throw new Error(data.error || "Analysis failed");
+        if (response.status === 413) {
+          throw new Error("Image is too large. Please try a smaller photo or take a picture from further away.");
+        }
+        throw new Error(
+          data?.error ||
+          (response.status === 429
+            ? "API Quota Exceeded. Please check your AI Studio plan and billing details, or try again later."
+            : response.status === 502 || response.status === 503 || response.status === 504
+            ? "Appraisal service is warming up. Please try again shortly."
+            : `Analysis failed (${response.status})`)
+        );
+      }
+
+      if (contentType.includes("text/html")) {
+        throw new Error("Received HTML instead of JSON. The server might be restarting or unavailable. Please try again.");
+      }
+
+      if (!data) {
+        throw new Error("Unable to parse appraisal results.");
       }
 
       // Transition draft to registered inventory
       const newItem: ScannedItem = {
         id: "scan-" + Math.random().toString(36).substr(2, 9),
         image: queueItem.image,
-        nicheId: queueItem.nicheId,
+        additionalImages: queueItem.additionalImages,
+        nicheId: data?.detectedNicheId || queueItem.nicheId,
+        detectedNicheId: data?.detectedNicheId,
+        detectedNicheName: data?.detectedNicheName,
         scannedAt: queueItem.capturedAt,
         condition: queueItem.condition,
         quickVerdictOnly: queueItem.quickVerdictOnly,
         status: "success",
         verdict: data,
+        resaleStatus: data?.verdict === "BUY" ? "sourced" : "passed",
+        buyPrice: queueItem.condition.askingPrice,
+        platformListed: "eBay",
+        dateAcquired: new Date().toISOString(),
       };
 
       // Update both lists and save
@@ -399,6 +509,18 @@ export default function App() {
             </button>
 
             <button
+              onClick={() => setActiveTab("dashboard")}
+              className={`flex-1 py-2 px-3 text-xs font-mono font-bold rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer whitespace-nowrap ${
+                activeTab === "dashboard"
+                  ? "bg-amber-400 text-stone-950 shadow-sm border border-amber-300 font-extrabold"
+                  : "text-stone-400 hover:text-stone-100 hover:bg-stone-800/60"
+              }`}
+            >
+              <TrendingUp className="w-3.5 h-3.5" />
+              <span>DASHBOARD</span>
+            </button>
+
+            <button
               onClick={() => setActiveTab("offline")}
               className={`flex-1 py-2 px-3 text-xs font-mono font-bold rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer whitespace-nowrap relative ${
                 activeTab === "offline"
@@ -432,6 +554,7 @@ export default function App() {
               offlineQueueCount={offlineQueue.length}
               onNavigateTab={(tab) => setActiveTab(tab)}
               onLoadSampleItem={handleLoadSampleItem}
+              pastCorrections={pastCorrections}
             />
           )}
 
@@ -446,6 +569,8 @@ export default function App() {
                   setActiveDossier(null);
                   setActiveTab("inventory");
                 }}
+                onCorrectItem={handleCorrectItem}
+                onUpdateItem={handleUpdateItem}
               />
             ) : (
               <div className="bg-white rounded-3xl p-12 border border-stone-200 text-center max-w-xl mx-auto space-y-4 shadow-sm">
@@ -478,14 +603,18 @@ export default function App() {
             <InventoryTab 
               items={scannedItems}
               onDeleteItem={handleDeleteItem}
+              onUpdateItem={handleUpdateItem}
               onLoadSampleItem={handleLoadSampleItem}
               onInspectDossier={(item) => {
                 setActiveDossier(item);
-                setShowDossierModal(true);
                 setActiveTab("dossier");
               }}
               onStartScan={() => setActiveTab("scanner")}
             />
+          )}
+
+          {activeTab === "dashboard" && (
+            <DashboardView items={scannedItems} />
           )}
 
           {activeTab === "offline" && (
@@ -498,69 +627,6 @@ export default function App() {
         </div>
 
       </main>
-
-      {/* SOFT MATERIALIZING PRODUCT INFO DOSSIER POPUP OVERLAY MODAL */}
-      {showDossierModal && activeDossier && (
-        <div className="fixed inset-0 z-50 bg-stone-950/80 backdrop-blur-md flex items-center justify-center p-2 sm:p-6 overflow-y-auto animate-in fade-in duration-300">
-          <div className="relative bg-stone-900 border border-stone-800 shadow-2xl rounded-3xl max-w-5xl w-full max-h-[92vh] overflow-y-auto my-auto p-4 sm:p-6 animate-in zoom-in-95 duration-300 space-y-4 text-stone-100">
-            
-            {/* Top Sticky Header Bar */}
-            <div className="sticky -top-4 -mx-4 -mt-4 sm:-top-6 sm:-mx-6 sm:-mt-6 z-30 bg-stone-950/95 backdrop-blur-md px-4 sm:px-6 py-3.5 border-b border-stone-800 flex items-center justify-between gap-3 shadow-md rounded-t-3xl">
-              <div className="flex items-center gap-2">
-                <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
-                <span className="text-xs font-mono font-bold text-amber-400 uppercase tracking-wider flex items-center gap-1.5">
-                  <Sparkles className="w-4 h-4 text-amber-400 fill-amber-400" />
-                  ⚡ Product Dossier Materialized
-                </span>
-              </div>
-
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowDossierModal(false);
-                    setActiveTab("scanner");
-                  }}
-                  className="px-3.5 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-stone-950 font-extrabold text-xs flex items-center gap-1.5 cursor-pointer transition-colors shadow-sm"
-                >
-                  <Camera className="w-3.5 h-3.5" />
-                  <span>Scan Next Item</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setShowDossierModal(false)}
-                  className="p-1.5 rounded-xl bg-stone-800 hover:bg-stone-700 text-stone-300 hover:text-white border border-stone-700 cursor-pointer transition-colors"
-                  title="Close Product Info Popup"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-            </div>
-
-            {/* Product Info / Dossier View Content */}
-            <div className="pt-2">
-              <DossierView
-                item={activeDossier}
-                onBackToScanner={() => {
-                  setShowDossierModal(false);
-                  setActiveTab("scanner");
-                }}
-                onViewInventory={() => {
-                  setShowDossierModal(false);
-                  setActiveTab("inventory");
-                }}
-                onDeleteItem={(id) => {
-                  handleDeleteItem(id);
-                  setActiveDossier(null);
-                  setShowDossierModal(false);
-                }}
-              />
-            </div>
-
-          </div>
-        </div>
-      )}
 
       {/* Floating Toast Alert Banner */}
       {toastMessage && (

@@ -9,7 +9,8 @@ import {
   Shirt, 
   Sparkles, 
   ChevronRight,
-  ClipboardList
+  ClipboardList,
+  Guitar
 } from "lucide-react";
 
 interface FocusModuleSelectorProps {
@@ -26,6 +27,7 @@ export const IconMap: Record<string, React.ComponentType<any>> = {
   Coins: Coins,
   Music: Music,
   Shirt: Shirt,
+  Guitar: Guitar,
 };
 
 export default function FocusModuleSelector({
@@ -56,7 +58,7 @@ export default function FocusModuleSelector({
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
         {NICHE_CONFIGS.map((niche) => {
           const IconComponent = IconMap[niche.icon] || Layers;
           const isSelected = niche.id === selectedNicheId;
@@ -82,6 +84,9 @@ export default function FocusModuleSelector({
             } else if (niche.accentColor === "rose") {
               accentBg = "bg-rose-50/70 border-rose-500 ring-2 ring-rose-500/20";
               iconColor = "text-rose-600";
+            } else if (niche.accentColor === "cyan") {
+              accentBg = "bg-cyan-50/70 border-cyan-500 ring-2 ring-cyan-500/20";
+              iconColor = "text-cyan-600";
             }
           }
 
@@ -102,13 +107,15 @@ export default function FocusModuleSelector({
                       niche.accentColor === "emerald" ? "bg-emerald-400" :
                       niche.accentColor === "amber" ? "bg-amber-400" :
                       niche.accentColor === "indigo" ? "bg-indigo-400" :
-                      niche.accentColor === "purple" ? "bg-purple-400" : "bg-rose-400"
+                      niche.accentColor === "purple" ? "bg-purple-400" :
+                      niche.accentColor === "cyan" ? "bg-cyan-400" : "bg-rose-400"
                     }`}></span>
                     <span className={`relative inline-flex rounded-full h-2 w-2 ${
                       niche.accentColor === "emerald" ? "bg-emerald-500" :
                       niche.accentColor === "amber" ? "bg-amber-500" :
                       niche.accentColor === "indigo" ? "bg-indigo-500" :
-                      niche.accentColor === "purple" ? "bg-purple-500" : "bg-rose-500"
+                      niche.accentColor === "purple" ? "bg-purple-500" :
+                      niche.accentColor === "cyan" ? "bg-cyan-500" : "bg-rose-500"
                     }`}></span>
                   </span>
                 )}

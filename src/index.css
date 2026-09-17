@@ -62,5 +62,36 @@ html, body {
   background: #f59e0b;
 }
 
+@media print {
+  body {
+    background: white;
+    color: black;
+  }
+  
+  header, footer, nav, button {
+    display: none !important;
+  }
+  
+  .print\:hidden {
+    display: none !important;
+  }
+
+  .fixed.inset-0 {
+    position: relative !important;
+    background: transparent !important;
+    backdrop-filter: none !important;
+    padding: 0 !important;
+    display: block !important;
+  }
+
+  /* Make sure the modal content expands and doesn't scroll */
+  .max-h-\[92vh\] {
+    max-height: none !important;
+    overflow: visible !important;
+    border: none !important;
+    box-shadow: none !important;
+  }
+}
+
 
 

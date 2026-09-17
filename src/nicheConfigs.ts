@@ -169,6 +169,80 @@ export const NICHE_CONFIGS: NicheConfig[] = [
         options: ["Vintage Made in USA style", "Modern screenprinted neck tag", "Paper / care tag with modern barcode", "Tag cut off or missing"]
       }
     ]
+  },
+  {
+    id: "instruments",
+    name: "Musical Instruments",
+    icon: "Guitar",
+    accentColor: "cyan",
+    badgeColor: "bg-cyan-50 text-cyan-700 border-cyan-200",
+    borderColor: "border-cyan-500",
+    description: "Deep forensics for vintage & modern guitars, tube amps, pedals, synths, brass, woodwinds, and violins.",
+    evidencePrompt: "Capture headstock logo, neck plate/serial number, label inside soundhole/f-hole, potentiometer codes, and maker engravings.",
+    checklist: [
+      "Headstock logo font, decal type (spaghetti vs transition vs block), and serial stamping",
+      "Violin/Cello Purfling: Inlaid 3-ply wood with mitered bee-sting corners vs painted ink faux lines (<$100 student tell)",
+      "Internal Labels: Stradivarius / Guarnerius facsimile Latin trade labels deciphered by McKinley Tariff Act ('Made in Germany/Czecho-Slovakia')",
+      "Soundpost & Plate Integrity: Soundpost crack on back plate (fatal 50-70% value loss) vs bass bar crack vs open rib seams",
+      "Bow Forensics: Brazilian Pernambuco vs Brazilwood, maker stamp above frog, solid silver vs nickel mountings, Parisian eye",
+      "Hardware & Electronics: Potentiometer date codes (CTS 137YYWW), pickup bobbins (PAF), transformer codes, tube amp chassis",
+      "Structural Integrity: Guitar headstock smile fractures, Martin bridge belly bulge, neck reset angle, brass saxophone pad seals",
+      "Historical Era Cues: Pre-CBS, Norlin pancake bodies, Selmer Mark VI 5-digit serials, 1920s E.H. Roth/Juzek Master Art violins"
+    ],
+    valuationRubric: "Benchmark against Reverb Price Guide, Tarisio Cozio fine instrument archives, Brompton's, and vintage dealer registers. Violin soundpost back cracks deduct 50-70% value; headstock breaks deduct 40-50%. Original Pernambuco silver-mounted bows command $800-$5,000+ independent of the violin.",
+    sampleComps: "Reverb Price Guide, Tarisio Cozio Archive, Brompton's, Heritage Auctions, eBay Sold",
+    questions: [
+      {
+        id: "instrument_family",
+        label: "Instrument Sub-Type & Family",
+        options: [
+          "Bowed Strings (Violin, Viola, Cello, Bow)",
+          "Electric Guitar / Bass",
+          "Acoustic / Classical / Hollowbody",
+          "Tube Amplifier / Effects Pedal",
+          "Synthesizer / Keyboard / Pro Audio",
+          "Brass & Woodwinds (Sax, Trumpet, Clarinet)",
+          "Drums & Vintage Cymbals",
+          "Folk & Traditional (Banjo, Mandolin, Ukulele)"
+        ]
+      },
+      {
+        id: "serial_stamp",
+        label: "Serial Number, Maker Mark & Label Status",
+        options: [
+          "Internal violin label visible through f-hole",
+          "Clear headstock stamp / neck plate serial visible",
+          "Potentiometer / transformer / PCB date code visible",
+          "Bow maker stamp visible above frog / silver wrap",
+          "Bell / neck maker engraving found",
+          "No serial found / Unmarked vintage"
+        ]
+      },
+      {
+        id: "violin_checks",
+        label: "Violin & Bow Physical Checklist (If Applicable)",
+        options: [
+          "N/A - Not a violin or stringed instrument",
+          "Purfling is real inlaid wood (visible grain channel)",
+          "Back has high-figure 'tiger flame' curl wood",
+          "No soundpost cracks on back or top plates",
+          "Includes bow with stamped name or silver winding",
+          "Has visible crack near bridge / soundpost / pegbox"
+        ]
+      },
+      {
+        id: "structural_condition",
+        label: "Structural & Electronic Integrity",
+        options: [
+          "100% All-Original & Fully Functional",
+          "Repaired Headstock Crack / Neck Repair",
+          "Soundpost / Top / Back Plate Crack",
+          "Modified / Replaced Pickups, Pots, or Tuners",
+          "Refinished / Oversprayed body or neck",
+          "Untested / Needs setup, fret dress, or repad"
+        ]
+      }
+    ]
   }
 ];
 

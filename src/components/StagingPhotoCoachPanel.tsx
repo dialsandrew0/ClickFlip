@@ -79,15 +79,24 @@ export default function StagingPhotoCoachPanel({ guide, itemTitle }: StagingPhot
         }),
       });
 
-      if (!res.ok) {
-        throw new Error(`Server returned ${res.status}`);
+      const contentType = res.headers.get("content-type") || "";
+      let data: any = null;
+      if (contentType.includes("application/json")) {
+        try {
+          data = await res.json();
+        } catch {
+          data = null;
+        }
       }
 
-      const data = await res.json();
-      if (data.stagedImageUrl) {
+      if (!res.ok) {
+        throw new Error(data?.error || `Server returned ${res.status}`);
+      }
+
+      if (data?.stagedImageUrl) {
         setStagedImage(data.stagedImageUrl);
       } else {
-        throw new Error("No image generated in response");
+        throw new Error(data?.error || "No image generated in response");
       }
     } catch (err: any) {
       console.error("Failed to generate AI staged photo:", err);
